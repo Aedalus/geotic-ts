@@ -5,6 +5,7 @@ export interface Clazz<T> {
     new(...args: any[]): T;
 }
 
+export type GetDataType<T> = T extends Component<infer U> ? U : never;
 
 export abstract class Component<T> {
     static allowMultiple = false;
@@ -12,7 +13,7 @@ export abstract class Component<T> {
     _cbit!: bigint
 
     private entity?: Entity
-    data: T
+    private data: T
 
     get world() {
         return this.entity?.world;
@@ -24,6 +25,10 @@ export abstract class Component<T> {
 
     constructor(data: T) {
         this.data = data
+    }
+
+    getEntity() {
+      return this.entity
     }
 
     destroy() {

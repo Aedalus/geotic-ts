@@ -1,6 +1,6 @@
-import { Engine } from "./Engine";
-import { Entity } from "./Entity";
-import { World } from "./World";
+import { Engine } from "../Engine";
+import { Entity } from "../Entity";
+import { World } from "../World";
 
 describe("World", () => {
   let world: World;

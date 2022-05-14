@@ -1,7 +1,7 @@
-import { Clazz, Component } from './Component';
+import { Clazz, Component, GetDataType } from './Component';
 import { EntityEvent } from './EntityEvent';
-import { addBit, hasBit, subtractBit } from './util/bit-util';
 import { World } from './World';
+import { addBit, hasBit, subtractBit } from './util/bit-util';
 
 const attachComponent = <T>(entity: Entity, component: Component<T>) => {
     const key = component._ckey;
@@ -44,7 +44,7 @@ export class Entity {
         }
     }
 
-    add<D, C extends Component<D>>(clazz: Clazz<C>, data: D) {
+    add<C extends Component<unknown>>(clazz: Clazz<C>, data: GetDataType<C>): C {
         const component = new clazz(data);
 
         attachComponent(this, component);
@@ -53,6 +53,8 @@ export class Entity {
         component._onAttached(this);
 
         this._candidacy();
+
+        return component
     }
 
     has<C>(clazz: Clazz<C>) {
