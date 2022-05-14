@@ -1,7 +1,7 @@
 import { Clazz } from './Component';
 import { Entity } from './Entity';
-import { addBit, bitIntersection } from './util/bit-util';
 import { World } from './World';
+// import { addBit, bitIntersection } from './util/bit-util';
 
 export interface Filter {
     any?: Clazz<any>[]
@@ -11,9 +11,9 @@ export interface Filter {
 }
 
 export class Query {
-    private _any: bigint
-    private _all: bigint
-    private _none: bigint
+    private _any: Clazz<any>[]
+    private _all: Clazz<any>[]
+    private _none: Clazz<any>[]
 
     private _cache : Entity[] = [];
     private _onAddListeners: Array<(e: Entity) => void> = [];
@@ -25,21 +25,9 @@ export class Query {
     constructor(world: World, filters: Filter) {
         this._world = world;
 
-        const any = filters.any || [];
-        const all = filters.all || [];
-        const none = filters.none || [];
-
-        this._any = any.reduce((s, c) => {
-            return addBit(s, c.prototype._cbit);
-        }, 0n);
-
-        this._all = all.reduce((s, c) => {
-            return addBit(s, c.prototype._cbit);
-        }, 0n);
-
-        this._none = none.reduce((s, c) => {
-            return addBit(s, c.prototype._cbit);
-        }, 0n);
+        this._any = filters.any || [];
+        this._all = filters.all || [];
+        this._none = filters.none || [];
 
         this._immutableResult =
             filters.immutableResult == undefined
@@ -66,13 +54,41 @@ export class Query {
     }
 
     matches(entity: Entity) {
-        const bits = entity._cbits;
-
-        const any = this._any === 0n || bitIntersection(bits, this._any) > 0n;
-        const all = bitIntersection(bits, this._all) === this._all;
-        const none = bitIntersection(bits, this._none) === 0n;
+        const any = this.matchesAny(entity)
+        const all = this.matchesAll(entity)
+        const none = this.matchesNone(entity)
 
         return any && all && none;
+    }
+
+    private matchesAny(entity: Entity): boolean {
+      if(this._any.length === 0) return true
+
+      for(const c of this._any) {
+        if(entity.has(c)) return true
+      }
+
+      return false
+    }
+
+    private matchesAll(entity: Entity): boolean {
+      if(this._all.length === 0) return true
+
+      for(const c of this._all) {
+        if(entity.has(c) === false) return false
+      }
+
+      return true
+    }
+
+    private matchesNone(entity: Entity): boolean {
+      if(this._none.length === 0) return true
+
+      for(const c of this._none) {
+        if(entity.has(c)) return false
+      }
+
+      return true
     }
 
     candidate(entity: Entity) {

@@ -1,7 +1,7 @@
 import { Clazz, Component, GetDataType } from './Component';
 import { EntityEvent } from './EntityEvent';
 import { World } from './World';
-import { addBit, hasBit, subtractBit } from './util/bit-util';
+// import { addBit, hasBit, subtractBit } from './util/bit-util';
 
 const attachComponent = <T>(entity: Entity, component: Component<T>) => {
     const key = component._ckey;
@@ -14,7 +14,6 @@ const removeComponent = <T>(entity: Entity, component: Component<T>) => {
 
     delete entity.components[key];
 
-    entity._cbits = subtractBit(entity._cbits, component._cbit);
     entity._candidacy();
 };
 
@@ -28,7 +27,6 @@ export class Entity {
     isDestroyed: boolean
     components: {[index: string]: Component<any>}
 
-    _cbits = 0n;
     _qeligible = true;
 
     constructor(world: World, id: string) {
@@ -49,7 +47,6 @@ export class Entity {
 
         attachComponent(this, component);
 
-        this._cbits = addBit(this._cbits, component._cbit);
         component._onAttached(this);
 
         this._candidacy();
@@ -58,7 +55,7 @@ export class Entity {
     }
 
     has<C>(clazz: Clazz<C>) {
-        return hasBit(this._cbits, clazz.prototype._cbit);
+      return !!this.components[clazz.prototype._ckey]
     }
 
     get<C extends Component<any>>(clazz: Clazz<C>): C | undefined {
@@ -81,7 +78,6 @@ export class Entity {
             const v = this.components[k];
 
             if (v instanceof Component) {
-                this._cbits = subtractBit(this._cbits, v._cbit);
                 v._onDestroyed();
             }
             delete this.components[k];
